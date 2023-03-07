@@ -1,0 +1,5 @@
+https://www.youtube.com/watch?v=pnYccz1Ha34&ab_channel=Guidev
+
+point = ((1-t)^3 * P0) + (3(1-t)^2 * t * C0) + (3(t-1) * t^2 * C1) + (t^3 * P1)
+Line points are P0 -> P1
+Control points are C0 and C1
