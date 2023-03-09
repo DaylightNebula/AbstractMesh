@@ -117,6 +117,13 @@ fn update(mut lines: ResMut<DebugLines>) {
     // draw_indices(&mut lines, &curve_array, &line_array, &indices);
 }
 
+// generate normals for all the positions
+fn gen_normals(curveA: &Curve, curveB: &Curve) -> Vec<Vec3> {
+    let mut output = Vec::new();
+    return output;
+}
+
+// generate vector of uvs, the pts 1 array will go along the top, and pts2 array will go along the bottom of the texture
 fn gen_uvs(pts1_len: &i32, pts2_len: &i32) -> Vec<Vec2> {
     let mut output = Vec::new();
 
