@@ -19,7 +19,7 @@ const TEST_CURVE: Curve = Curve {
     control0: Vec3 { x: 1.0, y: 0.0, z: 1.0 },
     control1: Vec3 { x: -1.0, y: 0.0, z: -1.0 },
 };
-const NUM_POINTS_CURVE: i32 = 7;
+const NUM_POINTS_CURVE: i32 = 31;
 
 const TEST_LINE: Curve = Curve {
     point0: Vec3 { x: 1.0, y: -1.0, z: 0.0 },
@@ -62,44 +62,65 @@ fn start(
     });
 
     // convert curves to point lists
-    let mut curve_array = gen_points_from_curve(&TEST_CURVE, NUM_POINTS_CURVE);
-    let mut line_array = gen_points_from_curve(&TEST_LINE, NUM_POINT_LINE);
+    let mut curve_array = gen_points_from_curve(&TEST_CURVE, &NUM_POINTS_CURVE);
+    let mut line_array = gen_points_from_curve(&TEST_LINE, &NUM_POINT_LINE);
 
     // generate the indices of the mesh
     let indices = gen_indices(&curve_array, &line_array);
 
     // create mesh
-    // let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
-    // mesh.insert_attribute(
-    //     Mesh::ATTRIBUTE_POSITION,
-    //     vec![[curve_array.append(&mut line_array)]]
-    // );
-    // // mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, vec![[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [1.0, 1.0, 0.0]]);
-    // mesh.set_indices(Some(mesh::Indices::U32(indices)));
-    // commands.spawn(PbrBundle {
-    //     mesh: meshes.add(mesh),
-    //     material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
-    //     ..default()
-    // });
+    let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
+
+    // combine and set vertices
+    curve_array.append(&mut line_array);
+    mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, curve_array);
+
+    // set normals
+    mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, vec![Vec3::new(0.0, 0.0, -1.0); (NUM_POINT_LINE + NUM_POINTS_CURVE + 2) as usize]);
+    mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, gen_uvs(&NUM_POINTS_CURVE, &NUM_POINT_LINE));
+
+    // set indices
+    mesh.set_indices(Some(mesh::Indices::U32(indices)));
+
+    // spawn mesh
+    commands.spawn(PbrBundle {
+        mesh: meshes.add(mesh),
+        material: materials.add(Color::rgb(1.0, 0.0, 0.0).into()),
+        ..default()
+    });
 }
 
 
 fn update(mut lines: ResMut<DebugLines>) {
     // // draw cross at each point
-    // draw_cross(&mut lines, &TEST_CURVE.point0, 0.25);
-    // draw_cross(&mut lines, &TEST_CURVE.point1, 0.25);
-    //
-    // // draw the test curve
-    // let curve_array = gen_points_from_curve(&TEST_CURVE, NUM_POINTS_CURVE);
+    draw_cross(&mut lines, &TEST_CURVE.point0, 0.25);
+    draw_cross(&mut lines, &TEST_CURVE.point1, 0.25);
+
+    // draw the test curve
+    // let curve_array = gen_points_from_curve(&TEST_CURVE, &NUM_POINTS_CURVE);
     // draw_line(&mut lines, &curve_array);
     //
     // // draw the test line
-    // let line_array = gen_points_from_curve(&TEST_LINE, NUM_POINT_LINE);
+    // let line_array = gen_points_from_curve(&TEST_LINE, &NUM_POINT_LINE);
     // draw_line(&mut lines, &line_array);
     //
     // // gen mesh
     // let indices = gen_indices(&curve_array, &line_array);
     // draw_indices(&mut lines, &curve_array, &line_array, &indices);
+}
+
+fn gen_uvs(pts1_len: &i32, pts2_len: &i32) -> Vec<Vec2> {
+    let mut output = Vec::new();
+
+    for n in 0 .. (*pts1_len + 1) {
+        output.push(Vec2::new(n as f32 / *pts1_len as f32, 0.0));
+    }
+
+    for n in 0 .. (*pts2_len + 1) {
+        output.push(Vec2::new(n as f32 / *pts2_len as f32, 1.0));
+    }
+
+    return output;
 }
 
 // Using the two points arrays, it generates a list of indices that connects both.
@@ -148,11 +169,11 @@ fn gen_indices(pts1: &Vec<Vec3>, pts2: &Vec<Vec3>) -> Vec<u32> {
 }
 
 // draws a wireframe from the indices provided
-fn draw_indices(lines: &mut ResMut<DebugLines>, pts1: &Vec<Vec3>, pts2: &Vec<Vec3>, indices: &Vec<i32>) {
+fn draw_indices(lines: &mut ResMut<DebugLines>, pts1: &Vec<Vec3>, pts2: &Vec<Vec3>, indices: &Vec<u32>) {
     for n in 0..(indices.len() as i32 / 3) {
-        let a = eval_index(pts1, pts2, indices[n as usize * 3]);
-        let b = eval_index(pts1, pts2, indices[n as usize * 3 + 1]);
-        let c = eval_index(pts1, pts2, indices[n as usize * 3 + 2]);
+        let a = eval_index(pts1, pts2, indices[n as usize * 3] as i32);
+        let b = eval_index(pts1, pts2, indices[n as usize * 3 + 1] as i32);
+        let c = eval_index(pts1, pts2, indices[n as usize * 3 + 2] as i32);
         lines.line(a, b, 0.0);
         lines.line(b, c, 0.0);
         lines.line(a, c, 0.0);
@@ -165,10 +186,10 @@ fn eval_index(pts1: &Vec<Vec3>, pts2: &Vec<Vec3>, index: i32) -> Vec3 {
 }
 
 // takes in a curve and generates points along it
-fn gen_points_from_curve(curve: &Curve, num_points: i32) -> Vec<Vec3> {
+fn gen_points_from_curve(curve: &Curve, num_points: &i32) -> Vec<Vec3> {
     let mut array = Vec::new();
     for n in 0 .. (num_points + 1) {
-        let i: f32 = n as f32 / (num_points as f32);
+        let i: f32 = n as f32 / *num_points as f32;
         array.push(get_curve(curve, i));
     }
     return array;
