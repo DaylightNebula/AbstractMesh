@@ -6,6 +6,12 @@ use bevy::render::mesh::PrimitiveTopology;
 use bevy::render::render_resource::ShaderType;
 use bevy_prototype_debug_lines::*;
 
+// todo proper normals calculation
+// todo face function to generate from two slices
+// todo generate via json
+// todo allow for point generation type
+// todo allow for circle generation type
+
 struct Curve {
     point0: Vec3,
     point1: Vec3,
@@ -72,8 +78,10 @@ fn start(
     let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
 
     // combine and set vertices
-    curve_array.append(&mut line_array);
-    mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, curve_array);
+    let mut positions = Vec::new();
+    positions.append(&mut curve_array);
+    positions.append(&mut line_array);
+    mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
 
     // set normals
     mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, vec![Vec3::new(0.0, 0.0, -1.0); (NUM_POINT_LINE + NUM_POINTS_CURVE + 2) as usize]);
