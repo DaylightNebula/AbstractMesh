@@ -1,12 +1,15 @@
 use bevy::prelude::*;
-use structs::shapes::AMShapes;
+use generator::gen_shape_mesh;
+use structs::shapes::AMShape;
 
+pub mod generator;
 pub mod structs;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_systems(Startup, setup)
+        .add_systems(Update, update)
         .run();
 }
 
@@ -32,8 +35,28 @@ fn setup(
         transform: Transform::from_xyz(-2.0, 2.5, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
         ..default()
     });
+}
 
+fn update(mut gizmos: Gizmos) {
+    // load file
     let file = std::fs::read_to_string("./assets/test.amj");
-    let shapes = serde_json::from_str::<Vec<AMShapes>>(file.unwrap().as_str());
-    println!("Shapes: {:?}", shapes.unwrap());
+    let shapes = serde_json::from_str::<Vec<AMShape>>(file.unwrap().as_str()).unwrap();
+    
+    // draw shapes via gizmos
+    for shape in shapes {
+        // generate shape
+        let info = gen_shape_mesh(shape);
+        let indices = info.indices;
+
+        // draw indices
+        for n in (0 .. indices.len()).step_by(3) {
+            let a = info.positions.get(n);
+            let a = if a.is_some() { a.unwrap() } else { return };
+            let b = info.positions.get(n + 1).unwrap();
+            let c = info.positions.get(n + 2).unwrap();
+            gizmos.line(*a, *b, Color::RED);
+            gizmos.line(*a, *c, Color::BLUE);
+            gizmos.line(*c, *b, Color::GREEN);
+        }
+    }
 }
