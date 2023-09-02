@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+/* use bevy::prelude::*;
 
 // create a struct for our plugin
 pub struct HelloPlugin;
@@ -41,4 +41,4 @@ fn greet_people(time: Res<Time>, mut timer: ResMut<GreetTimer>, query: Query<&Na
             println!("hello {}!", name.0)
         }
     }
-}
+} */
