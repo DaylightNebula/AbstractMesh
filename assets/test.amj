@@ -1,0 +1,21 @@
+[
+    {
+        "type": "Basic",
+        "bounds": [
+            {
+                "type": "Point",
+                "position": [0.0, -1.0, 0.0]
+            },
+            {
+                "type": "Curve",
+                "start_point": [ 1.0, 0.0, 0.0 ],
+                "end_point": [ -1.0, 0.0, 0.0 ],
+                "start_direction": [ 0.0, 0.0, 1.0 ],
+                "end_direction": [ 0.0, 0.0, -1.0 ]
+            }
+        ],
+        "faces": [
+            0, 1
+        ]
+    }
+]
