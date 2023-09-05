@@ -11,7 +11,7 @@ pub struct BoundInfo {
 #[derive(Default, Debug, Clone)]
 pub struct ShapeInfo {
     pub positions: Vec<Vec3>,
-    pub indices: Vec<usize>
+    pub indices: Vec<u32>
 }
 
 // function to generate mesh info from a shape
@@ -77,7 +77,7 @@ pub fn gen_positions(bound: &AMBounds, positions: &mut Vec<Vec3>, info: &mut Bou
     }
 }
 
-pub fn gen_indices(a: &BoundInfo, b: &BoundInfo, indices: &mut Vec<usize>) {
+pub fn gen_indices(a: &BoundInfo, b: &BoundInfo, indices: &mut Vec<u32>) {
     // get which points array is smallest
     let is_a_smallest = a.pos_length < b.pos_length;
     let largest_length = if is_a_smallest { b.pos_length } else { a.pos_length };
@@ -93,11 +93,11 @@ pub fn gen_indices(a: &BoundInfo, b: &BoundInfo, indices: &mut Vec<usize>) {
     let loop_size = largest_length - 1;
     for n in 0..loop_size {
         // add indexes of the point pair from the largest points array to the output
-        indices.push(largest_offset + n);
-        indices.push(largest_offset + n + 1);
+        indices.push((largest_offset + n) as u32);
+        indices.push((largest_offset + n + 1) as u32);
 
         // add index of the point in the smallest points array to the output
-        indices.push(smallest_offset + small_index);
+        indices.push((smallest_offset + small_index) as u32);
 
         // if the small index needs to increment
         if n % small_increment_interval == 0 && n != loop_size && n != 0 {
@@ -105,11 +105,11 @@ pub fn gen_indices(a: &BoundInfo, b: &BoundInfo, indices: &mut Vec<usize>) {
             small_index += 1;
 
             // add second point from above point pair from the largest points array to the output
-            indices.push(largest_offset + n + 1);
+            indices.push((largest_offset + n + 1) as u32);
 
             // add the old and new index of the points from the small est points array to the output
-            indices.push(smallest_offset + small_index);
-            indices.push(smallest_offset + small_index - 1);
+            indices.push((smallest_offset + small_index) as u32);
+            indices.push((smallest_offset + small_index - 1) as u32);
         }
     }
 }
