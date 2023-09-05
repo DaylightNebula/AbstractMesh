@@ -39,11 +39,17 @@ fn setup(
     // generate test mesh
     let file = std::fs::read_to_string("./assets/test.amj");
     let shapes = serde_json::from_str::<Vec<AMShape>>(file.unwrap().as_str()).unwrap();
+    
+    // todo combine all shapes into one mesh
     for shape in shapes {
-        let info = gen_shape_mesh(shape); // todo combine all shapes into one mesh
-        let mut mesh = Mesh::new(bevy::render::render_resource::PrimitiveTopology::TriangleList);
+        // generate shape info and unpack
+        let info = gen_shape_mesh(shape);
         let position_count = info.positions.len();
-        mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, info.positions);
+        let positions = info.positions;
+        
+        // generate mesh and update values
+        let mut mesh = Mesh::new(bevy::render::render_resource::PrimitiveTopology::TriangleList);
+        mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
         mesh.set_indices(Some(Indices::U32(info.indices)));
 
         // temp normals
