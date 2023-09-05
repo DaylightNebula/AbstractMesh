@@ -42,8 +42,12 @@ fn setup(
     for shape in shapes {
         let info = gen_shape_mesh(shape); // todo combine all shapes into one mesh
         let mut mesh = Mesh::new(bevy::render::render_resource::PrimitiveTopology::TriangleList);
+        let position_count = info.positions.len();
         mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, info.positions);
         mesh.set_indices(Some(Indices::U32(info.indices)));
+
+        // temp normals
+        mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, vec![Vec3::new(0.0, 0.0, -1.0); position_count]);
 
         // spawn mesh
         commands.spawn(PbrBundle {
