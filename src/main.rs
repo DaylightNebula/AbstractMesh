@@ -50,10 +50,9 @@ fn update(mut gizmos: Gizmos) {
 
         // draw indices
         for n in (0 .. indices.len()).step_by(3) {
-            let a = info.positions.get(n);
-            let a = if a.is_some() { a.unwrap() } else { return };
-            let b = info.positions.get(n + 1).unwrap();
-            let c = info.positions.get(n + 2).unwrap();
+            let a = info.positions.get(*indices.get(n).unwrap()).unwrap();
+            let b = info.positions.get(*indices.get(n + 1).unwrap()).unwrap();
+            let c = info.positions.get(*indices.get(n + 2).unwrap()).unwrap();
             gizmos.line(*a, *b, Color::RED);
             gizmos.line(*a, *c, Color::BLUE);
             gizmos.line(*c, *b, Color::GREEN);
