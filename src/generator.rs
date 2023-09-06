@@ -30,9 +30,12 @@ pub fn gen_shape_mesh(shape: AMShape) -> ShapeInfo {
     let mut indices = Vec::new();
     let mut normals = vec![Vec3::ZERO; positions.len()];
     for i in (0 .. shape.faces.len()).step_by(2) {
+        let a_idx = *shape.faces.get(i).unwrap();
+        let b_idx = *shape.faces.get(i + 1).unwrap();
+
         gen_indices_and_normals(
-            infos.get(i).unwrap(), 
-            infos.get(i + 1).unwrap(), 
+            infos.get(a_idx).unwrap(), 
+            infos.get(b_idx).unwrap(), 
             &positions,
             &mut indices, &mut normals
         );

@@ -1,4 +1,5 @@
 use bevy::{prelude::*, render::mesh::Indices};
+use bevy_panorbit_camera::{PanOrbitCameraPlugin, PanOrbitCamera};
 use generator::gen_shape_mesh;
 use structs::shapes::AMShape;
 
@@ -7,9 +8,9 @@ pub mod structs;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins((DefaultPlugins, PanOrbitCameraPlugin))
         .add_systems(Startup, setup)
-        .add_systems(Update, update)
+        // .add_systems(Update, update)
         .run();
 }
 
@@ -31,10 +32,10 @@ fn setup(
     });
 
     // camera
-    commands.spawn(Camera3dBundle {
+    commands.spawn((Camera3dBundle {
         transform: Transform::from_xyz(-2.0, 2.5, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
         ..default()
-    });
+    }, PanOrbitCamera::default()));
 
     // generate test mesh
     let file = std::fs::read_to_string("./assets/test.amj");
@@ -64,7 +65,7 @@ fn setup(
     }
 }
 
-fn update(mut gizmos: Gizmos) {
+// fn update(mut gizmos: Gizmos) {
     // load file
     // let file = std::fs::read_to_string("./assets/test.amj");
     // let shapes = serde_json::from_str::<Vec<AMShape>>(file.unwrap().as_str()).unwrap();
@@ -85,4 +86,4 @@ fn update(mut gizmos: Gizmos) {
     //         gizmos.line(*c, *b, Color::GREEN);
     //     }
     // }
-}
+// }
