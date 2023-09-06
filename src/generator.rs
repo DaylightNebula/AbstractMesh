@@ -11,7 +11,8 @@ pub struct BoundInfo {
 #[derive(Default, Debug, Clone)]
 pub struct ShapeInfo {
     pub positions: Vec<Vec3>,
-    pub indices: Vec<u32>
+    pub indices: Vec<u32>,
+    pub normals: Vec<Vec3>
 }
 
 // function to generate mesh info from a shape
@@ -27,15 +28,17 @@ pub fn gen_shape_mesh(shape: AMShape) -> ShapeInfo {
 
     // generate faces (uvs and indices)
     let mut indices = Vec::new();
+    let mut normals = vec![Vec3::ZERO; positions.len()];
     for i in (0 .. shape.faces.len()).step_by(2) {
-        gen_indices(
+        gen_indices_and_normals(
             infos.get(i).unwrap(), 
             infos.get(i + 1).unwrap(), 
-            &mut indices
+            &positions,
+            &mut indices, &mut normals
         );
     }
     
-    return ShapeInfo { positions, indices };
+    return ShapeInfo { positions, indices, normals };
 }
 
 // function to generate positions of a mesh and update relevant infos
@@ -77,7 +80,12 @@ pub fn gen_positions(bound: &AMBounds, positions: &mut Vec<Vec3>, info: &mut Bou
     }
 }
 
-pub fn gen_indices(a: &BoundInfo, b: &BoundInfo, indices: &mut Vec<u32>) {
+pub fn gen_indices_and_normals(
+    a: &BoundInfo, b: &BoundInfo, 
+    positions: &Vec<Vec3>,
+    indices: &mut Vec<u32>,
+    normals: &mut Vec<Vec3>
+) {
     // get which points array is smallest
     let is_a_smallest = a.pos_length < b.pos_length;
     let largest_length = if is_a_smallest { b.pos_length } else { a.pos_length };
@@ -92,24 +100,51 @@ pub fn gen_indices(a: &BoundInfo, b: &BoundInfo, indices: &mut Vec<u32>) {
     // loop through each point on the largest, result in a pair (index 0 and 1, or index 3 and 4)
     let loop_size = largest_length - 1;
     for n in 0..loop_size {
-        // add indexes of the point pair from the largest points array to the output
-        indices.push((largest_offset + n) as u32);
-        indices.push((largest_offset + n + 1) as u32);
-
-        // add index of the point in the smallest points array to the output
-        indices.push((smallest_offset + small_index) as u32);
+        // build triangle from two points from the largest and one point from the smaller
+        build_indices_and_normals(
+            largest_offset + n,
+            largest_offset + n + 1,
+            smallest_offset + small_index,
+            positions, indices, normals
+        );
 
         // if the small index needs to increment
         if n % small_increment_interval == 0 && n != loop_size && n != 0 {
             // increment
             small_index += 1;
 
-            // add second point from above point pair from the largest points array to the output
-            indices.push((largest_offset + n + 1) as u32);
-
-            // add the old and new index of the points from the small est points array to the output
-            indices.push((smallest_offset + small_index) as u32);
-            indices.push((smallest_offset + small_index - 1) as u32);
+            // build the opposite as above
+            build_indices_and_normals(
+                largest_offset + n + 1,
+                smallest_offset + small_index,
+                smallest_offset + small_index - 1,
+                positions, indices, normals
+            );
         }
     }
+}
+
+pub fn build_indices_and_normals(
+    a_idx: usize, b_idx: usize, c_idx: usize,
+    positions: &Vec<Vec3>, indices: &mut Vec<u32>,
+    normals: &mut Vec<Vec3>
+) {
+    // add indices
+    indices.push(a_idx as u32);
+    indices.push(b_idx as u32);
+    indices.push(c_idx as u32);
+
+    // caculate surface normal https://math.stackexchange.com/questions/305642/how-to-find-surface-normal-of-a-triangle
+    let v = *positions.get(b_idx).unwrap() - *positions.get(a_idx).unwrap();
+    let w = *positions.get(c_idx).unwrap() - *positions.get(a_idx).unwrap();
+    let surface_normal = Vec3 {
+        x: (v.y * w.z) - (v.z * w.y),
+        y: (v.z * w.x) - (v.x * w.z),
+        z: (v.x * w.y) - (v.y * w.x)
+    }.normalize();
+
+    // set normals
+    normals[a_idx] = surface_normal;
+    normals[b_idx] = surface_normal;
+    normals[c_idx] = surface_normal;
 }

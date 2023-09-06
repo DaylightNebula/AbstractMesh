@@ -44,8 +44,8 @@ fn setup(
     for shape in shapes {
         // generate shape info and unpack
         let info = gen_shape_mesh(shape);
-        let position_count = info.positions.len();
         let positions = info.positions;
+        let normals = info.normals;
         
         // generate mesh and update values
         let mut mesh = Mesh::new(bevy::render::render_resource::PrimitiveTopology::TriangleList);
@@ -53,7 +53,7 @@ fn setup(
         mesh.set_indices(Some(Indices::U32(info.indices)));
 
         // temp normals
-        mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, vec![Vec3::new(0.0, 0.0, -1.0); position_count]);
+        mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
 
         // spawn mesh
         commands.spawn(PbrBundle {
@@ -66,23 +66,23 @@ fn setup(
 
 fn update(mut gizmos: Gizmos) {
     // load file
-    let file = std::fs::read_to_string("./assets/test.amj");
-    let shapes = serde_json::from_str::<Vec<AMShape>>(file.unwrap().as_str()).unwrap();
+    // let file = std::fs::read_to_string("./assets/test.amj");
+    // let shapes = serde_json::from_str::<Vec<AMShape>>(file.unwrap().as_str()).unwrap();
     
-    // draw shapes via gizmos
-    for shape in shapes {
-        // generate shape
-        let info = gen_shape_mesh(shape);
-        let indices = info.indices;
+    // // draw shapes via gizmos
+    // for shape in shapes {
+    //     // generate shape
+    //     let info = gen_shape_mesh(shape);
+    //     let indices = info.indices;
 
-        // draw indices
-        for n in (0 .. indices.len()).step_by(3) {
-            let a = info.positions.get(*indices.get(n).unwrap() as usize).unwrap();
-            let b = info.positions.get(*indices.get(n + 1).unwrap() as usize).unwrap();
-            let c = info.positions.get(*indices.get(n + 2).unwrap() as usize).unwrap();
-            gizmos.line(*a, *b, Color::RED);
-            gizmos.line(*a, *c, Color::BLUE);
-            gizmos.line(*c, *b, Color::GREEN);
-        }
-    }
+    //     // draw indices
+    //     for n in (0 .. indices.len()).step_by(3) {
+    //         let a = info.positions.get(*indices.get(n).unwrap() as usize).unwrap();
+    //         let b = info.positions.get(*indices.get(n + 1).unwrap() as usize).unwrap();
+    //         let c = info.positions.get(*indices.get(n + 2).unwrap() as usize).unwrap();
+    //         gizmos.line(*a, *b, Color::RED);
+    //         gizmos.line(*a, *c, Color::BLUE);
+    //         gizmos.line(*c, *b, Color::GREEN);
+    //     }
+    // }
 }
