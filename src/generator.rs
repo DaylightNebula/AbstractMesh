@@ -36,6 +36,8 @@ pub fn gen_shape_mesh(shape: AMShape) -> ShapeInfo {
         gen_indices_and_normals(
             infos.get(a_idx as usize).unwrap(), 
             infos.get(b_idx as usize).unwrap(), 
+            shape.inversion_list[i],
+            shape.inversion_list[i + 1],
             &positions,
             &mut indices, &mut normals
         );
@@ -85,6 +87,7 @@ pub fn gen_positions(bound: &AMBounds, positions: &mut Vec<Vec3>, info: &mut Bou
 
 pub fn gen_indices_and_normals(
     a: &BoundInfo, b: &BoundInfo, 
+    a_inv: bool, b_inv: bool,
     positions: &Vec<Vec3>,
     indices: &mut Vec<u32>,
     normals: &mut Vec<Vec3>
@@ -95,6 +98,18 @@ pub fn gen_indices_and_normals(
     let smallest_length = if is_a_smallest { a.pos_length } else { b.pos_length };
     let largest_offset = if is_a_smallest { b.pos_offset } else { a.pos_offset };
     let smallest_offset = if is_a_smallest { a.pos_offset } else { b.pos_offset };
+    let largest_inv = if is_a_smallest { b_inv } else { a_inv };
+    let smallest_inv = if is_a_smallest { a_inv } else { b_inv };
+
+    // get index functions
+    let largest_index = |a: usize| { 
+        if largest_inv {largest_offset + largest_length - a - 1} 
+        else { largest_offset + a }
+    };
+    let smallest_index = |a| {
+        if smallest_inv { smallest_offset + smallest_length - a - 1 } 
+        else { smallest_offset + a }
+    };
 
     // divide the size of the largest by the size of the smallest to determine how often the smaller index needs to increment when looping through the larger array
     let small_increment_interval = largest_length / smallest_length;
@@ -105,9 +120,9 @@ pub fn gen_indices_and_normals(
     for n in 0..loop_size {
         // build triangle from two points from the largest and one point from the smaller
         build_indices_and_normals(
-            largest_offset + n,
-            largest_offset + n + 1,
-            smallest_offset + small_index,
+            largest_index(n),
+            largest_index(n + 1),
+            smallest_index(small_index),
             positions, indices, normals
         );
 
@@ -118,9 +133,9 @@ pub fn gen_indices_and_normals(
 
             // build the opposite as above
             build_indices_and_normals(
-                largest_offset + n + 1,
-                smallest_offset + small_index,
-                smallest_offset + small_index - 1,
+                largest_index(n + 1),
+                smallest_index(small_index),
+                smallest_index(small_index - 1),
                 positions, indices, normals
             );
         }
