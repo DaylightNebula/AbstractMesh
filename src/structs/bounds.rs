@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use serde::*;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(tag = "type")]
 pub enum AMBounds {
     Point {

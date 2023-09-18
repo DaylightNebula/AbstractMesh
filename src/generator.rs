@@ -34,8 +34,8 @@ pub fn gen_shape_mesh(shape: AMShape) -> ShapeInfo {
         let b_idx = *shape.faces.get(i + 1).unwrap();
 
         gen_indices_and_normals(
-            infos.get(a_idx).unwrap(), 
-            infos.get(b_idx).unwrap(), 
+            infos.get(a_idx as usize).unwrap(), 
+            infos.get(b_idx as usize).unwrap(), 
             &positions,
             &mut indices, &mut normals
         );

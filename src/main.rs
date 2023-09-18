@@ -1,7 +1,7 @@
 use bevy::{prelude::*, render::mesh::Indices};
 use bevy_panorbit_camera::{PanOrbitCameraPlugin, PanOrbitCamera};
 use generator::gen_shape_mesh;
-use structs::shapes::AMShape;
+use structs::shapes::*;
 
 pub mod generator;
 pub mod structs;
@@ -38,10 +38,14 @@ fn setup(
     }, PanOrbitCamera::default()));
 
     // generate test mesh
-    let file = std::fs::read_to_string("./assets/test.amj");
-    let shapes = serde_json::from_str::<Vec<AMShape>>(file.unwrap().as_str()).unwrap();
+    let shapes = load_shapes("./assets/test.amj");
+    let shapes = 
+        if shapes.is_ok() { shapes.unwrap() }
+        else { panic!("Load error: {:?}", shapes.err().unwrap()); };
     
     // todo combine all shapes into one mesh
+
+    // load each individual shape
     for shape in shapes {
         // generate shape info and unpack
         let info = gen_shape_mesh(shape);
