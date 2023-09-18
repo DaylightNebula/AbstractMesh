@@ -33,6 +33,7 @@ pub fn gen_shape_mesh(shape: AMShape) -> ShapeInfo {
         let a_idx = *shape.faces.get(i).unwrap();
         let b_idx = *shape.faces.get(i + 1).unwrap();
 
+        println!("Index {} {}", a_idx, b_idx);
         gen_indices_and_normals(
             infos.get(a_idx as usize).unwrap(), 
             infos.get(b_idx as usize).unwrap(), 

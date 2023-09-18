@@ -35,12 +35,14 @@ fn setup(
     }, PanOrbitCamera::default()));
 
     // generate test mesh
-    let shapes = load_shapes("./assets/test.amj");
+    let shapes = load_shapes_bin("./assets/test.amb");
     let shapes = 
         if shapes.is_ok() { shapes.unwrap() }
         else { panic!("Load error: {:?}", shapes.err().unwrap()); };
+    println!("Shapes: {:?}", shapes);
     
     // todo combine all shapes into one mesh
+    // save_bin("./assets/test.amb", shapes.clone());
 
     // load each individual shape
     for shape in shapes {
@@ -64,4 +66,5 @@ fn setup(
             ..default()
         });
     }
+
 }

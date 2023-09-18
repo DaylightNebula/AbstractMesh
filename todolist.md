@@ -3,7 +3,8 @@
 [x] linear bounds
 [ ] texture uv coords based on bounds
 [ ] figure out how to get animations working
-[ ] convert to actual library
+[x] convert to actual library
+[ ] binary import and export
 
 ==== Editor Functions ====
 [ ] create new bounds
