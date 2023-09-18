@@ -1,8 +1,9 @@
 ====  Lib  Functions  ====
 [x] negative bound index in face means flip bound, account for that
-[ ] linear bounds
+[x] linear bounds
 [ ] texture uv coords based on bounds
 [ ] figure out how to get animations working
+[ ] convert to actual library
 
 ==== Editor Functions ====
 [ ] create new bounds
