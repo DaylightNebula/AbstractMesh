@@ -8,6 +8,12 @@ pub enum AMBounds {
         #[serde(with = "super::vec3_array")]
         position: Vec3
     },
+    Linear {
+        #[serde(with = "super::vec3_array")]
+        start_point: Vec3,
+        #[serde(with = "super::vec3_array")]
+        end_point: Vec3
+    },
     Curve {
         #[serde(with = "super::vec3_array")]
         start_point: Vec3,

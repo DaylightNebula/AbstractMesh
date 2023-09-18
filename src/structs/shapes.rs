@@ -44,6 +44,7 @@ pub fn load_shapes(path: impl Into<String>) -> Result<Vec<AMShape>, ShapeLoadErr
             } else {
                 shape.inversion_list.push(false); // todo test without
             }
+            shape.faces[index] -= 1;
         });
     });
 

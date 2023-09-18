@@ -57,7 +57,12 @@ pub fn gen_positions(bound: &AMBounds, positions: &mut Vec<Vec3>, info: &mut Bou
             positions.push(position.clone());
             info.pos_length = 1;
         },
-        AMBounds::Curve { start_point, end_point, start_direction, end_direction } =>{
+        AMBounds::Linear { start_point, end_point } => {
+            positions.push(start_point.clone());
+            positions.push(end_point.clone());
+            info.pos_length = 2;
+        }
+        AMBounds::Curve { start_point, end_point, start_direction, end_direction } => {
             // get number of points to generate (5 * distance convered)
             let num_points = start_point.distance(*end_point).round() * 5.;
             info.pos_length = num_points as usize + 1;
