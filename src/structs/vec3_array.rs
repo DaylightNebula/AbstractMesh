@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy_math::*;
 use serde::*;
 
 // array intermeidiate for vec3's

@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy_math::Vec3;
 use serde::*;
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]

@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy_math::*;
 
 use crate::structs::{shapes::AMShape, bounds::AMBounds};
 
