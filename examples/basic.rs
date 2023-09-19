@@ -39,7 +39,6 @@ fn setup(
     let shapes = 
         if shapes.is_ok() { shapes.unwrap() }
         else { panic!("Load error: {:?}", shapes.err().unwrap()); };
-    println!("Shapes: {:?}", shapes);
     
     // todo combine all shapes into one mesh
     // save_bin("./assets/test.amb", shapes.clone());
