@@ -20,19 +20,30 @@ pub enum ShapeLoadError {
     Deserialize(String)
 }
 
-pub fn load_shapes(path: impl Into<String>) -> Result<Vec<AMShape>, ShapeLoadError> {
+pub fn read_shapes_from_file(path: impl Into<String>) -> Result<Vec<AMShape>, ShapeLoadError> {
     // load content
     let content = std::fs::read_to_string(path.into());
     let content = 
         if content.is_ok() { content.unwrap() } 
         else { return Err(ShapeLoadError::FileLoad(format!("{:?}", content.err().unwrap()))) };
 
+    return load_shapes_json(content.as_str());
+}
+
+pub fn load_shapes_json(text: &str) -> Result<Vec<AMShape>, ShapeLoadError> {
     // load shapes
-    let shapes = serde_json::from_str::<Vec<AMShape>>(content.as_str());
+    let shapes = serde_json::from_str::<Vec<AMShape>>(text);
     let mut shapes =
         if shapes.is_ok() { shapes.unwrap() }
         else { return Err(ShapeLoadError::Deserialize(format!("{:?}", shapes.err().unwrap()))) };
 
+    apply_shape_mods(&mut shapes);
+
+    // return final shapes
+    return Ok(shapes);
+}
+
+pub fn apply_shape_mods(shapes: &mut Vec<AMShape>) {
     // load inversion map
     shapes.iter_mut().for_each(|shape| {
         shape.inversion_list = Vec::with_capacity(shape.faces.len());
@@ -49,16 +60,19 @@ pub fn load_shapes(path: impl Into<String>) -> Result<Vec<AMShape>, ShapeLoadErr
             shape.faces[index] -= 1;
         });
     });
+}
+
+pub fn read_shapes_from_bin_file(path: impl Into<String>) -> Result<Vec<AMShape>, ShapeLoadError> {
+    let file = File::open(path.into()).unwrap();
+    let shapes: Vec<AMShape> = serde_cbor::from_reader(file).unwrap();
 
     // return final shapes
     return Ok(shapes);
 }
 
-pub fn load_shapes_bin(path: impl Into<String>) -> Result<Vec<AMShape>, ShapeLoadError> {
-    let file = File::open(path.into()).unwrap();
-    let shapes: Vec<AMShape> = serde_cbor::from_reader(file).unwrap();
-
-    // return final shapes
+pub fn load_shapes_bin(bytes: &[u8]) -> Result<Vec<AMShape>, ShapeLoadError> {
+    let shapes = serde_cbor::from_slice(bytes);
+    let shapes: Vec<AMShape> = if shapes.is_ok() { shapes.unwrap() } else { return Err(ShapeLoadError::FileLoad("Failed to decode bytes".to_string())) };
     return Ok(shapes);
 }
 

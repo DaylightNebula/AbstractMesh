@@ -35,7 +35,7 @@ fn setup(
     }, PanOrbitCamera::default()));
 
     // generate test mesh
-    let shapes = load_shapes_bin("./assets/test.amb");
+    let shapes = read_shapes_from_bin_file("./assets/test.amb");
     let shapes = 
         if shapes.is_ok() { shapes.unwrap() }
         else { panic!("Load error: {:?}", shapes.err().unwrap()); };

@@ -1,4 +1,5 @@
-use bevy::prelude::*;
+use abstracted_mesh_rust::{structs::shapes::AMShape, generator::gen_shape_mesh};
+use bevy::{prelude::*, render::mesh::Indices};
 use bevy_egui::*;
 use bevy_panorbit_camera::*;
 
@@ -10,30 +11,60 @@ use bevy_panorbit_camera::*;
  * [ ] Create new faces
  */
 
+mod loader;
+
+#[derive(Debug, Component, Clone)]
+pub struct AMEditorFile {
+    pub path: String
+}
+
+#[derive(Debug, Default, Component, Clone)]
+pub struct AMEditorContext {
+    pub shapes: Vec<AMShape>
+}
+
 fn main() {
     App::new()
         .add_plugins((DefaultPlugins, PanOrbitCameraPlugin, EguiPlugin))
         .add_systems(Startup, setup)
-        .add_systems(Update, ui)
+        .add_systems(Update, (ui, update_root_object))
         .run();
 }
 
 fn setup(mut commands: Commands) {
     // light
-    commands.spawn(DirectionalLightBundle {
-        directional_light: DirectionalLight {
-            color: Color::WHITE,
-            illuminance: 10000.0,
-            ..Default::default()
+    commands.spawn(PointLightBundle {
+        point_light: PointLight {
+            intensity: 1500.0,
+            shadows_enabled: true,
+            ..default()
         },
-        ..Default::default()
+        transform: Transform::from_xyz(4.0, 8.0, 4.0),
+        ..default()
     });
+    // commands.spawn(DirectionalLightBundle {
+    //     directional_light: DirectionalLight {
+    //         color: Color::WHITE,
+    //         illuminance: 10000.0,
+    //         ..Default::default()
+    //     },
+    //     transform: Transform::from_xyz(100.0, 200.0, 100.0),
+    //     ..Default::default()
+    // });
 
     // camera
     commands.spawn((Camera3dBundle {
         transform: Transform::from_xyz(-2.0, 2.5, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
         ..default()
     }, PanOrbitCamera::default()));
+
+    // spawn root object
+    commands.spawn((
+        AMEditorFile { path: format!("./assets/test.amj") },
+        AMEditorContext::default(),
+        VisibilityBundle::default(),
+        TransformBundle::default()
+    ));
 }
 
 fn ui(mut contexts: EguiContexts, mut dnd_events: EventReader<FileDragAndDrop>) {
@@ -53,6 +84,76 @@ fn ui(mut contexts: EguiContexts, mut dnd_events: EventReader<FileDragAndDrop>) 
 
             if ui.button("Save...").clicked() {
 
+            }
+        });
+    });
+}
+
+// system that updates the root entity with its file changes
+fn update_root_object(
+    mut commands: Commands,
+    mut query: Query<(Entity, &AMEditorFile, &mut AMEditorContext), Changed<AMEditorFile>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    // for each entity
+    query.for_each_mut(|(entity, file, mut context)| {
+        // load shapes based on extension
+        let ext = file.path.split(".").last().unwrap();
+        let shapes = match ext {
+            "amb" => {
+                let shapes = abstracted_mesh_rust::structs::shapes::read_shapes_from_bin_file(file.path.clone());
+                if shapes.is_ok() {
+                    shapes.unwrap()
+                } else {
+                    error!("Unable to load shapes with error: {:?}", shapes.err().unwrap());
+                    return
+                }
+            }
+            "amj" => {
+                let shapes = abstracted_mesh_rust::structs::shapes::read_shapes_from_file(file.path.clone());
+                if shapes.is_ok() {
+                    shapes.unwrap()
+                } else {
+                    error!("Unable to load shapes with error: {:?}", shapes.err().unwrap());
+                    return
+                }
+            }
+            _ => {
+                error!("Unknown file extension {}", ext);
+                return
+            }
+        };
+
+        // save shapes
+        context.shapes = shapes;
+
+        // remove all old children
+        let mut entity_commands = commands.entity(entity);
+        entity_commands.despawn_descendants();
+
+        // spawn a new child for each shape in shapes
+        entity_commands.with_children(|builder| {
+            for shape in context.shapes.clone().into_iter() {
+                // generate shape info and unpack
+                let info = gen_shape_mesh(shape);
+                let positions = info.positions;
+                let normals = info.normals;
+                
+                // generate mesh and update values
+                let mut mesh = Mesh::new(bevy::render::render_resource::PrimitiveTopology::TriangleList);
+                mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
+                mesh.set_indices(Some(Indices::U32(info.indices)));
+        
+                // temp normals
+                mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
+        
+                // spawn mesh
+                builder.spawn(PbrBundle {
+                    mesh: meshes.add(mesh),
+                    material: materials.add(Color::rgb(1.0, 0.0, 0.0).into()),
+                    ..default()
+                });
             }
         });
     });
