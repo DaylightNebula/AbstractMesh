@@ -39,14 +39,11 @@ fn setup(
     let shapes = 
         if shapes.is_ok() { shapes.unwrap() }
         else { panic!("Load error: {:?}", shapes.err().unwrap()); };
-    
-    // todo combine all shapes into one mesh
-    // save_bin("./assets/test.amb", shapes.clone());
 
     // load each individual shape
     for shape in shapes {
         // generate shape info and unpack
-        let info = gen_shape_mesh(shape);
+        let info = gen_shape_mesh(&shape);
         let positions = info.positions;
         let normals = info.normals;
         

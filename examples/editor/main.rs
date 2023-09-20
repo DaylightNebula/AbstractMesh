@@ -1,17 +1,29 @@
-use abstracted_mesh_rust::{structs::shapes::AMShape, generator::gen_shape_mesh};
+use abstracted_mesh_rust::{structs::shapes::AMShape, generator::{gen_shape_mesh, BoundInfo, self}};
 use bevy::{prelude::*, render::mesh::Indices};
 use bevy_egui::*;
 use bevy_panorbit_camera::*;
+use modes::{AMEditorMode, AMEditorModePlugin};
+use settings::AMEditorSettingsPlugin;
 
-/**
- * [ ] Asset loader for amb and amj files
- * [ ] File load and change
+/** "Long" term todo list
+ * [x] Asset loader for amb and amj files
+ * [x] File load
+ * [ ] Save file on modle change
  * [ ] Modify existing bounds
  * [ ] Create new bounds
  * [ ] Create new faces
  */
 
+/** "Short" term todo list
+ * [ ] Allow bounds to be selected
+ * - [ ] Move points around
+ * - [ ] Move control points around
+ * - [ ] Allow type change (auto generated points if more are needed)
+ */
+
 mod loader;
+mod modes;
+mod settings;
 
 #[derive(Debug, Component, Clone)]
 pub struct AMEditorFile {
@@ -20,12 +32,14 @@ pub struct AMEditorFile {
 
 #[derive(Debug, Default, Component, Clone)]
 pub struct AMEditorContext {
-    pub shapes: Vec<AMShape>
+    pub shapes: Vec<AMShape>,
+    pub mode: AMEditorMode
 }
 
 fn main() {
     App::new()
         .add_plugins((DefaultPlugins, PanOrbitCameraPlugin, EguiPlugin))
+        .add_plugins((AMEditorModePlugin, AMEditorSettingsPlugin))
         .add_systems(Startup, setup)
         .add_systems(Update, (ui, update_root_object))
         .run();
@@ -128,13 +142,23 @@ fn update_root_object(
         // save shapes
         context.shapes = shapes;
 
+        // update current selection
+        let mut positions = Vec::new();
+        let mut info = BoundInfo::default();
+        for shape in &context.shapes {
+            for bound in &shape.bounds {
+                generator::gen_positions(bound, &mut positions, &mut info);
+            }
+        }
+        context.mode = AMEditorMode::SelectGroup { positions };
+
         // remove all old children
         let mut entity_commands = commands.entity(entity);
         entity_commands.despawn_descendants();
 
         // spawn a new child for each shape in shapes
         entity_commands.with_children(|builder| {
-            for shape in context.shapes.clone().into_iter() {
+            for shape in (&context.shapes).into_iter() {
                 // generate shape info and unpack
                 let info = gen_shape_mesh(shape);
                 let positions = info.positions;

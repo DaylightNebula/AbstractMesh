@@ -16,7 +16,7 @@ pub struct ShapeInfo {
 }
 
 // function to generate mesh info from a shape
-pub fn gen_shape_mesh(shape: AMShape) -> ShapeInfo {
+pub fn gen_shape_mesh(shape: &AMShape) -> ShapeInfo {
     // setup
     let mut infos = vec![BoundInfo::default(); shape.bounds.len()];
 
