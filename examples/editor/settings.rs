@@ -21,7 +21,8 @@ impl Plugin for AMEditorSettingsPlugin {
 
 fn ui(
     mut contexts: EguiContexts,
-    mut settings: ResMut<AMEditorSettings>
+    mut settings: ResMut<AMEditorSettings>,
+    mut gizmo_config: ResMut<GizmoConfig>
 ) {
     // create immovable setting window
     egui::Window::new("Settings")
@@ -34,5 +35,8 @@ fn ui(
             if color[0] != settings.color.r() || color[1] != settings.color.g() || color[2] != settings.color.b() {
                 settings.color = Color::rgb(color[0], color[1], color[2]);
             }
+
+            // line width modifier
+            ui.add(egui::Slider::new(&mut gizmo_config.line_width, 0.1 ..=10.0));
         });
 }
