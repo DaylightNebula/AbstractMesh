@@ -2,7 +2,9 @@ use abstracted_mesh_rust::{structs::shapes::AMShape, generator::{gen_shape_mesh,
 use bevy::{prelude::*, render::mesh::Indices};
 use bevy_egui::*;
 use bevy_panorbit_camera::*;
+use bevy_rapier3d::{render::RapierDebugRenderPlugin, prelude::{RapierPhysicsPlugin, NoUserData}};
 use modes::{AMEditorMode, AMEditorModePlugin};
+use selector::AMEditorSelectorPlugin;
 use settings::AMEditorSettingsPlugin;
 
 /** "Long" term todo list
@@ -23,6 +25,7 @@ use settings::AMEditorSettingsPlugin;
 
 mod loader;
 mod modes;
+mod selector;
 mod settings;
 
 #[derive(Debug, Component, Clone)]
@@ -39,7 +42,8 @@ pub struct AMEditorContext {
 fn main() {
     App::new()
         .add_plugins((DefaultPlugins, PanOrbitCameraPlugin, EguiPlugin))
-        .add_plugins((AMEditorModePlugin, AMEditorSettingsPlugin))
+        .add_plugins((AMEditorModePlugin, AMEditorSettingsPlugin, AMEditorSelectorPlugin))        
+        .add_plugins((RapierPhysicsPlugin::<NoUserData>::default(), RapierDebugRenderPlugin::default()))
         .add_systems(Startup, setup)
         .add_systems(Update, (ui, update_root_object))
         .run();
